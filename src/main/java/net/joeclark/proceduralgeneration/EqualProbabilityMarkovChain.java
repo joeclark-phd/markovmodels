@@ -61,7 +61,6 @@ public class EqualProbabilityMarkovChain<T> implements MarkovChain<T> {
 
         // the 'TO' state should also exist in the chain
         stateSet.computeIfAbsent(toState, k->new ArrayList<>());
-        System.out.println(stateSet);
     }
 
 
