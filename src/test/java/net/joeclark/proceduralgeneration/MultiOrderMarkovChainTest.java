@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MultiOrderMarkovChainTest {
 
+    // TODO: copy over tests from EPMC and then delete that class once the MOMC class fulfils its jobs
+
     @Test
     @DisplayName("Can train a chain of strings on string sequences")
     void CanInitializeAChainOfStrings() {

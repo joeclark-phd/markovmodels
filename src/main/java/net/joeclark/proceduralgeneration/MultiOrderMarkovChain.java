@@ -16,6 +16,12 @@ import java.util.Set;
  */
 public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
 
+    // TODO: logging
+    // TODO: README
+    // TODO: add quantity to observations
+    // TODO: add weighted and unweighted random draw
+    // TODO: make serializable
+
 
     // for each observed state or sequence of states (of length at most maxOrder),
     // store a set of possible following states (as a list for slower writes, faster reads)
