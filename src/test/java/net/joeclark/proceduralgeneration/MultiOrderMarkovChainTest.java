@@ -28,7 +28,6 @@ class MultiOrderMarkovChainTest {
         chain.addSequence(new ArrayList<>(Arrays.asList(1,1,2,3,5,8,13)));
     }
 
-
     @Test
     @DisplayName("Can initialize and train a chain of strings on string sequences")
     void CanTrainAChainOnStringSequences() {
@@ -36,6 +35,14 @@ class MultiOrderMarkovChainTest {
         chain.addSequence(new ArrayList<>(Arrays.asList("how","much","wood","would","a","woodchuck","chuck")));
         chain.addSequence(new LinkedList<>(Arrays.asList("if","a","woodchuck","could","chuck","wood")));
     }
+
+    @Test
+    @DisplayName("Can set maxOrder with a builder-constructor function")
+    void CanSetMaxOrderWithBuilderConstructor() {
+        MultiOrderMarkovChain<Float> chain = new MultiOrderMarkovChain<Float>().withMaxOrder(2);
+        chain.addSequence(Arrays.asList(0.01F,3.14F,1.0F,1.414F,2.718F));
+    }
+
 
     @Nested
     @DisplayName("When initialized but not trained...")

@@ -1,7 +1,9 @@
 package net.joeclark.proceduralgeneration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,8 +17,9 @@ import java.util.Set;
  * but doesn't learn relative probabilities.
  */
 public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
+    private static final Logger logger = LoggerFactory.getLogger( MultiOrderMarkovChain.class );
 
-    // TODO: logging
+
     // TODO: edit README
     // TODO: add quantity to observations
     // TODO: add weighted and unweighted random draw
@@ -33,8 +36,26 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
     private int maxOrder = 3;
 
     public void setRandom(Random random) { this.random = random; }
-    public void setMaxOrder(int maxOrder) { this.maxOrder = maxOrder; }
+    public void setMaxOrder(int maxOrder) {
+        this.maxOrder = maxOrder;
+        logger.debug("maxOrder set to {} for future model training",maxOrder);
+    }
     public int getMaxOrder() { return maxOrder; }
+
+
+    public MultiOrderMarkovChain() {
+        logger.debug("Initialized a new MultiOrderMarkovChain instance with maxOrder={}",getMaxOrder());
+    }
+    public MultiOrderMarkovChain<T> withRandom(Random random) {
+        this.setRandom(random);
+        return this;
+    }
+    public MultiOrderMarkovChain<T> withMaxOrder(int maxOrder) {
+        this.setMaxOrder(maxOrder);
+        return this;
+    }
+
+
 
     @Override
     public Set<T> allKnownStates() {
@@ -77,6 +98,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
     }
 
     public void addSequence(List<T> sequence) {
+        logger.trace("addSequence called with {}",sequence);
         // All tokens/states in the sequence should be in the set of all known states.
         // That set acts like an "alphabet" of tokens (possible states) that can form sequences based on this model.
         knownStates.addAll(sequence);
@@ -87,7 +109,6 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
             for(int j=sequence.size();j>1;j--) {
                 for (int i = 0; ((i < maxOrder) && (i + 1 < j)); i++) {
                     ArrayList<T> multiplePredecessors = new ArrayList<>(sequence.subList(j - 2 - i, j - 1));
-                    //System.out.println("i=" + i + ": multiplePredecessors: " + multiplePredecessors);
                     implementLink(multiplePredecessors, sequence.get(j - 1));
                 }
             }
@@ -95,7 +116,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
     }
 
     private void implementLink(List<T> fromState, T toState) {
-        //System.out.println("implementing link: " + fromState + " -> " + toState);
+        logger.trace("implementing link: {} -> {}",fromState, toState);
         List<T> knownFollowers = stateSet.computeIfAbsent(fromState, k -> new ArrayList<>());
         // The set of possible outcomes is stored as a List, for faster random draws, but we want it to act like a Set.
         if(!knownFollowers.contains(toState)) { knownFollowers.add(toState); }
