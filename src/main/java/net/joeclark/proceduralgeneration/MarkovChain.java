@@ -12,8 +12,9 @@ import java.util.Set;
  * @param <T> the type of a "state"
  */
 public interface MarkovChain<T> {
+    public boolean hasModel();
     public Set<T> allKnownStates();
-    public Set<T> allPossibleNext(T currentState);
+    public Set<T> allPossibleNext(List<T> currentSequence);
     public T unweightedRandomNext(List<T> currentSequence);
     public T weightedRandomNext(List<T> currentSequence);
 }

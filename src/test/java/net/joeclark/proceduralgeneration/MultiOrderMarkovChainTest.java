@@ -137,13 +137,13 @@ class MultiOrderMarkovChainTest {
         @Test
         @DisplayName("allPossibleNext should throw exception if state doesn't exist")
         void AllPossibleNextShouldThrowExceptionIfStateUnknown() {
-            assertThrows(IllegalArgumentException.class,() -> chain.allPossibleNext("moon"));
+            assertThrows(IllegalArgumentException.class,() -> chain.allPossibleNext(Arrays.asList("moon")));
         }
 
         @Test
         @DisplayName("allPossibleNext should return empty set if state has no 'to' links")
         void AllPossibleNextShouldReturnEmptyIfStateHasNoToLinks() {
-            assertTrue(chain.allPossibleNext("mankind").isEmpty());
+            assertTrue(chain.allPossibleNext(Arrays.asList("mankind")).isEmpty());
         }
 
     }

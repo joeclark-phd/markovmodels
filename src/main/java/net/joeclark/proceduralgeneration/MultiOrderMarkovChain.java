@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,40 +14,42 @@ import java.util.Set;
 import static java.lang.Integer.min;
 
 /**
- * A very simple implementation of net.joeclark.proceduralgeneration.MarkovChain that stores the possible outcome states for each given state,
- * but doesn't learn relative probabilities.
+ * The reference implementation for net.joeclark.proceduralgeneration.MarkovChain.
  */
 public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
+    /** {@value}*/
+    public static final int DEFAULT_ORDER = 3;
     private static final Logger logger = LoggerFactory.getLogger( MultiOrderMarkovChain.class );
 
-
     // TODO: edit README
-    // TODO: add weighted and unweighted random draw
-    // TODO: implement priors
-    // TODO: make serializable
+    // TODO: add routine to train on a stream
+    // TODO: add method to implement priors
+    // TODO: make serializable and test serialization
     // TODO: complete javadocs
-
+    // TODO: build project to qualitatively test output
 
     // for each observed state or sequence of states (of length at most maxOrder), store a set of possible following
     // states mapped to weights (equal to the number of times the sequence was observed, not computed probabilities,
     // as that computation would be unnecessary overhead)
-    private final Map<List<T>, Map<T,Double>> model = new HashMap<>();
-    private final Set<T> knownStates = new HashSet<>();
+    protected final Map<List<T>, Map<T,Double>> model = new HashMap<>();
+    protected final Set<T> knownStates = new HashSet<>();
 
-    private Random random = new Random();
-    private int maxOrder = 3;
-
-    public void setRandom(Random random) { this.random = random; }
-    public void setMaxOrder(int maxOrder) {
-        this.maxOrder = maxOrder;
-        logger.debug("maxOrder set to {} for future model training",maxOrder);
-    }
-    public int getMaxOrder() { return maxOrder; }
-
+    protected Random random = new Random();
+    protected int maxOrder = DEFAULT_ORDER;
 
     public MultiOrderMarkovChain() {
         logger.debug("Initialized a new MultiOrderMarkovChain instance with maxOrder={}",getMaxOrder());
     }
+
+    public void setRandom(Random random) { this.random = random; }
+
+    public int getMaxOrder() { return maxOrder; }
+
+    public void setMaxOrder(int maxOrder) {
+        this.maxOrder = maxOrder;
+        logger.debug("maxOrder set to {} for future model training",maxOrder);
+    }
+
     public MultiOrderMarkovChain<T> withRandom(Random random) {
         this.setRandom(random);
         return this;
@@ -58,25 +59,19 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         return this;
     }
 
-
-
     @Override
     public Set<T> allKnownStates() {
         return knownStates;
     }
 
     @Override
-    public Set<T> allPossibleNext(T currentState) {
-        if(!knownStates.contains(currentState)) {
-            throw new IllegalArgumentException("the given state is unknown to this model");
-        } else {
-            List<T> currentList = new ArrayList<>(Collections.singletonList(currentState));
-            if (!model.containsKey(currentList)) {
-                // the state is known but has no "downstream" connections, i.e. it only appeared at the end(s) of sequence(s)
-                return new HashSet<>();
-            } else {
-                return model.get(currentList).keySet();
-            }
+    public Set<T> allPossibleNext(List<T> currentSequence) {
+        try {
+            Map<T, Double> bestModel = bestModel(currentSequence);
+            return bestModel.keySet();
+        } catch(IllegalStateException e) {
+            logger.trace(e.getMessage() + ": returning empty set");
+            return new HashSet<>();
         }
     }
 
@@ -129,7 +124,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         }
     }
 
-
+    @Override
     public boolean hasModel() {
         return !model.isEmpty();
     }
@@ -152,7 +147,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         }
     }
 
-    private void implementLink(List<T> fromState, T toState) {
+    protected void implementLink(List<T> fromState, T toState) {
         logger.trace("implementing link: {} -> {}",fromState, toState);
         model.computeIfAbsent(fromState, k -> new HashMap<>()).compute(toState, (k,v) -> (v==null) ? 1D : v+1D);
     }
