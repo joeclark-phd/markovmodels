@@ -19,6 +19,7 @@ class MultiOrderMarkovChainTest {
     void CanInitializeAChainOfCharacters() {
         MultiOrderMarkovChain<Character> chain = new MultiOrderMarkovChain<>();
         chain.addSequence(new ArrayList<>(Arrays.asList('V','W','X','Y','Z')));
+        chain.addSequence(new ArrayList<>(Arrays.asList('X','Y','Z')));
     }
 
     @Test

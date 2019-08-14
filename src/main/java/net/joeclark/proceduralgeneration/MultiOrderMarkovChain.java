@@ -21,15 +21,15 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
 
 
     // TODO: edit README
-    // TODO: add quantity to observations
     // TODO: add weighted and unweighted random draw
     // TODO: make serializable
     // TODO: complete javadocs
 
 
-    // for each observed state or sequence of states (of length at most maxOrder),
-    // store a set of possible following states (as a list for slower writes, faster reads)
-    private final Map<List<T>, List<T>> stateSet = new HashMap<>();
+    // for each observed state or sequence of states (of length at most maxOrder), store a set of possible following
+    // states mapped to weights (equal to the number of times the sequence was observed, not computed probabilities,
+    // as that computation would be unnecessary overhead)
+    private final Map<List<T>, Map<T,Double>> model = new HashMap<>();
     private final Set<T> knownStates = new HashSet<>();
 
     private Random random = new Random();
@@ -68,11 +68,11 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
             throw new IllegalArgumentException("the given state is unknown to this model");
         } else {
             List<T> currentList = new ArrayList<>(Collections.singletonList(currentState));
-            if (!stateSet.containsKey(currentList)) {
+            if (!model.containsKey(currentList)) {
                 // the state is known but has no "downstream" connections, i.e. it only appeared at the end(s) of sequence(s)
                 return new HashSet<>();
             } else {
-                return new HashSet<>(stateSet.get(currentList));
+                return model.get(currentList).keySet();
             }
         }
     }
@@ -83,18 +83,19 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
             throw new IllegalArgumentException("the given state is unknown to this model");
         } else {
             List<T> currentList = new ArrayList<>(Collections.singletonList(currentState));
-            if (!stateSet.containsKey(currentList)) {
+            if (!model.containsKey(currentList)) {
                 // the state is known but has no "downstream" connections, i.e. it only appeared at the end(s) of sequence(s)
                 throw new IllegalStateException("there are no known links possible from this state");
             } else {
-                List<T> possibles = stateSet.get(currentList);
-                return possibles.get(random.nextInt(possibles.size()));
+                Set<T> possibles = model.get(currentList).keySet();
+                List<T> possiblesListed = new ArrayList<>(possibles);
+                return possiblesListed.get(random.nextInt(possiblesListed.size()));
             }
         }
     }
 
     public boolean hasModel() {
-        return !stateSet.isEmpty();
+        return !model.isEmpty();
     }
 
     public void addSequence(List<T> sequence) {
@@ -117,9 +118,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
 
     private void implementLink(List<T> fromState, T toState) {
         logger.trace("implementing link: {} -> {}",fromState, toState);
-        List<T> knownFollowers = stateSet.computeIfAbsent(fromState, k -> new ArrayList<>());
-        // The set of possible outcomes is stored as a List, for faster random draws, but we want it to act like a Set.
-        if(!knownFollowers.contains(toState)) { knownFollowers.add(toState); }
+        model.computeIfAbsent(fromState, k -> new HashMap<>()).compute(toState, (k,v) -> (v==null) ? 1D : v+1D);
     }
 
 }
