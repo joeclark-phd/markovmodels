@@ -1,5 +1,6 @@
 package net.joeclark.proceduralgeneration;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -13,5 +14,6 @@ import java.util.Set;
 public interface MarkovChain<T> {
     public Set<T> allKnownStates();
     public Set<T> allPossibleNext(T currentState);
-    public T randomNext(T currentState);
+    public T unweightedRandomNext(List<T> currentSequence);
+    public T weightedRandomNext(List<T> currentSequence);
 }

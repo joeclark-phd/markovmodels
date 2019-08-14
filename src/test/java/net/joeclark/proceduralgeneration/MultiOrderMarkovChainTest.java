@@ -109,22 +109,29 @@ class MultiOrderMarkovChainTest {
         }
 
         @Test
-        @DisplayName("random choice should be one of the trained links")
+        @DisplayName("unweightedRandomNext choice should be one of the trained links")
         void RandomNextShouldBeOneOfTheTrainedLinks() {
-            String next = chain.randomNext("one");
+            String next = chain.unweightedRandomNext(Arrays.asList("one"));
             assertTrue(next.equals("small") || next.equals("giant"));
         }
 
         @Test
-        @DisplayName("randomNext should throw exception if state doesn't exist")
-        void RandomNextShouldThrowExceptionIfStateUnknown() {
-            assertThrows(IllegalArgumentException.class,() -> chain.randomNext("moon"));
+        @DisplayName("weightedRandomNext choice should be one of the trained links")
+        void WeightedRandomNextShouldBeOneOfTheTrainedLinks() {
+            String next = chain.weightedRandomNext(Arrays.asList("one"));
+            assertTrue(next.equals("small") || next.equals("giant"));
         }
 
         @Test
-        @DisplayName("randomNext should throw exception if state has no 'to' links")
+        @DisplayName("unweightedRandomNext should throw exception if state doesn't exist")
+        void RandomNextShouldThrowExceptionIfStateUnknown() {
+            assertThrows(IllegalArgumentException.class,() -> chain.unweightedRandomNext(Arrays.asList("moon")));
+        }
+
+        @Test
+        @DisplayName("unweightedRandomNext should throw exception if state has no 'to' links")
         void RandomNextShouldReturnNullIfStateHasNoToLinks() {
-            assertThrows(IllegalStateException.class, () -> chain.randomNext("mankind"));
+            assertThrows(IllegalStateException.class, () -> chain.unweightedRandomNext(Arrays.asList("mankind")));
         }
 
         @Test
