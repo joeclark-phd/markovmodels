@@ -59,6 +59,18 @@ class MultiOrderMarkovChainTest {
         assertTrue(chain.model.get(Arrays.asList('l')).keySet().containsAll(Arrays.asList('l','o','d')),"missed some transitions in the training data stream");
     }
 
+    @Test
+    @DisplayName("Short sequences in a training stream don't blow up a batch of training")
+    void ShortSequencesDontBlowUpTraining() {
+        List<List<Character>> trainingData = Arrays.asList(
+                Arrays.asList('i'),
+                Arrays.asList('l','i','k','e'),
+                Arrays.asList('s','p','a','m')
+        );
+        MultiOrderMarkovChain<Character> chain = new MultiOrderMarkovChain<Character>().andTrain(trainingData.stream());
+        assertEquals(2,chain.getNumTrainedSequences(),"two sequences should have been ingested, one ignored");
+    }
+
     @Nested
     @DisplayName("When initialized but not trained...")
     class WhenUnTrained {
@@ -111,7 +123,7 @@ class MultiOrderMarkovChainTest {
         }
 
         @Test
-        @DisplayName("allKnownStates shoudl includes states that are both 'from' and 'to' states")
+        @DisplayName("allKnownStates should includes states that are both 'from' and 'to' states")
         void AllKnownStatesShoudlIncludeToAndFromStates() {
             assertTrue(chain.allKnownStates().contains("for"));
         }

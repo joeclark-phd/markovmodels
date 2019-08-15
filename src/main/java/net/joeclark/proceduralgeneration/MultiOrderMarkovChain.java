@@ -16,6 +16,25 @@ import static java.lang.Integer.min;
 
 /**
  * The reference implementation for net.joeclark.proceduralgeneration.MarkovChain.
+ *
+ * <p>This implementation offers multi-order models with a Katz back-off.  What that means is, if {@code maxOrder}
+ * is greater than 1, multiple models may match any given sequence. For example, if you provide the sequence
+ * {@code {'J','A','V','A'}}, and {@code maxOrder==3}, we will first check to see if we have a model for states
+ * that follow {@code {'A','V','A'}}. If none is found, for example because that sequence was never seen in training
+ * data, we check for a model for states that follow {@code {'V','A'}}. Failing that too, we fall back on the model
+ * of transitions from the state {@code 'A'}, which is certain to exist if {@code 'A'} is a valid input to the
+ * relevant method ({@code weightedRandomNext} or {@code unWeightedRandomNext}).</p>
+ *
+ * <p>Another feature that may be desired in procedural generation applications is the option to inject some "true
+ * randomness" in the form of "prior" relative probabilities, i.e., small weights given to transitions <i>not</i>
+ * observed in training data. These can make up for the limitations of a training dataset and enable the generation
+ * of sequences not observed in training.  Use the {@code addPriors()} method after training your model to take
+ * advantage of this.</p>
+ *
+ * If multi-order models are not desired, set {@code maxOrder} to 1.  If priors are not desired, do nothing; they will
+ * not be added by default.
+ *
+ * @param <T> the type of a "state"
  */
 public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
     /** {@value}*/
@@ -81,6 +100,20 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         return knownStates;
     }
 
+    /**
+     * Given a {@code List<T>} representing a sequence of states, this method provides the set of all the states that
+     * may occur next in the chain.
+     *
+     * <p>This implementation offers multi-order models with a Katz back-off.  What that means is, if {@code maxOrder}
+     * is greater than 1, multiple models may match your sequence. For example, if you provide the sequence
+     * {@code {'J','A','V','A'}}, and {@code maxOrder==3}, we will first check to see if we have a model for states
+     * that follow {@code {'A','V','A'}}. If none is found, we check for a model for states that follow
+     * {@code {'V','A'}}. Failing that, we fall back on the model of transitions from the state {@code 'A'}.</p>
+     * @param currentSequence All states in this List must be known to the model, i.e., members of the set returned by
+     *  {@code allKnownStates()}.
+     * @return A set of states.  If the last state in the {@code currentSequence} is a "terminal state", that is, a
+     *  state known to occur only at the end(s) of sequence(s), the return will be an empty set.
+     */
     @Override
     public Set<T> allPossibleNext(List<T> currentSequence) {
         try {
@@ -149,6 +182,13 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         return !model.isEmpty();
     }
 
+    /**
+     * Given a {@code List<T>}, adds all transitions in the sequence (including transitions from sequences of lengths
+     * up to {@code maxOrder}) to the model, adding 1 to their weights.  All states in the sequence are added to
+     * the set of "known states" which serves as the alphabet or vocabulary of possible sequences. If the input list
+     * contains only two states, only a single transition is added to the model.
+     * @param sequence a List of 2 or more "states"
+     */
     public void addSequence(List<T> sequence) {
         logger.trace("addSequence called with {}",sequence);
         // All tokens/states in the sequence should be in the set of all known states.
@@ -169,6 +209,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         numTrainedSequences += 1;
     }
 
+    // TODO: allow adding any arbitrary weight to the link, and create a public interface for clients who want to directly specify their models
     private void implementLink(List<T> fromState, T toState) {
         logger.trace("implementing link: {} -> {}",fromState, toState);
         model.computeIfAbsent(fromState, k -> new HashMap<>()).compute(toState, (k,v) -> (v==null) ? 1D : v+1D);
@@ -215,10 +256,17 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         removeWeakLinks(1D);
     }
 
+    /**
+     * Trains a model on a stream of input data, essentially by calling {@code addSequence()} repeatedly, with a bit
+     * of additional logging.
+     * @param stream A stream of {@code List<T>} sequences, each of which must contain at least two states, or it will
+     *               be ignored.
+     */
     public void train(Stream<List<T>> stream) {
         logger.info("Beginning to ingest a stream of training data...");
         int previouslyTrainedSequences = numTrainedSequences;
-        stream.forEach( this::addSequence );
+        stream.filter(sequence -> sequence.size() >= 2 ) // ignore short sequences so they don't blow up a large batch of training
+              .forEach( this::addSequence );
         logger.info("...finished training on a stream of {} sequences. Model includes {} known states.",numTrainedSequences-previouslyTrainedSequences,knownStates.size());
     }
 
