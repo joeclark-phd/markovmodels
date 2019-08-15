@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.lang.Integer.min;
 
@@ -38,6 +39,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
 
     protected Random random = new Random();
     protected int maxOrder = DEFAULT_ORDER;
+    protected int numTrainedSequences = 0;
 
     public MultiOrderMarkovChain() {
         logger.debug("Initialized a new MultiOrderMarkovChain instance with maxOrder={}",getMaxOrder());
@@ -52,12 +54,26 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         logger.debug("maxOrder set to {} for future model training",maxOrder);
     }
 
+    // TODO: getters for knownStates.size() and numTrainedSequences
+
     public MultiOrderMarkovChain<T> withRandom(Random random) {
         this.setRandom(random);
         return this;
     }
     public MultiOrderMarkovChain<T> withMaxOrder(int maxOrder) {
         this.setMaxOrder(maxOrder);
+        return this;
+    }
+    public MultiOrderMarkovChain<T> andTrain(Stream<List<T>> stream) {
+        this.train(stream);
+        return this;
+    }
+    public MultiOrderMarkovChain<T> andAddPriors(Double prior) {
+        this.addPriors(prior);
+        return this;
+    }
+    public MultiOrderMarkovChain<T> andAddPriors() {
+        this.addPriors();
         return this;
     }
 
@@ -147,6 +163,8 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
                 }
             }
         }
+
+        numTrainedSequences += 1;
     }
 
     protected void implementLink(List<T> fromState, T toState) {
@@ -198,6 +216,13 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
      */
     public void removeWeakLinks() {
         removeWeakLinks(1D);
+    }
+
+    public void train(Stream<List<T>> stream) {
+        logger.info("Beginning to ingest a stream of training data...");
+        int previouslyTrainedSequences = numTrainedSequences;
+        stream.forEach( this::addSequence );
+        logger.info("...finished training on a stream of {} sequences. Model includes {} known states.",numTrainedSequences-previouslyTrainedSequences,knownStates.size());
     }
 
 }

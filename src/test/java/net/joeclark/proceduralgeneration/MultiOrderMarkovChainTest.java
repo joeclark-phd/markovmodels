@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 
 import static net.joeclark.proceduralgeneration.MultiOrderMarkovChain.DEFAULT_PRIOR;
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,6 +46,18 @@ class MultiOrderMarkovChainTest {
         chain.addSequence(Arrays.asList(0.01F,3.14F,1.0F,1.414F,2.718F));
     }
 
+    @Test
+    @DisplayName("Can be trained on a Stream<List<T>>")
+    void CanBeTrainedOnAStream() {
+        List<List<Character>> trainingData = Arrays.asList(
+                Arrays.asList('h','e','l','l','o'),
+                Arrays.asList('w','o','r','l','d')
+        );
+        MultiOrderMarkovChain<Character> chain = new MultiOrderMarkovChain<Character>().andTrain(trainingData.stream());
+        assertTrue(chain.knownStates.contains('h'),"didn't train states in first sequence");
+        assertTrue(chain.knownStates.contains('d'),"didn't train states in last sequence");
+        assertTrue(chain.model.get(Arrays.asList('l')).keySet().containsAll(Arrays.asList('l','o','d')),"missed some transitions in the training data stream");
+    }
 
     @Nested
     @DisplayName("When initialized but not trained...")
