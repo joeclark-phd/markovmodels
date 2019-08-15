@@ -19,11 +19,12 @@ import static java.lang.Integer.min;
 public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
     /** {@value}*/
     public static final int DEFAULT_ORDER = 3;
+    /** {@value}*/
+    public static final double DEFAULT_PRIOR = 0.005D;
     private static final Logger logger = LoggerFactory.getLogger( MultiOrderMarkovChain.class );
 
     // TODO: edit README
     // TODO: add routine to train on a stream
-    // TODO: add method to implement priors
     // TODO: make serializable and test serialization
     // TODO: complete javadocs
     // TODO: build project to qualitatively test output
@@ -171,6 +172,13 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
     }
 
     /**
+     * A shortcut to {@code addPriors(DEFAULT_PRIOR)}.
+     */
+    public void addPriors() {
+        addPriors(DEFAULT_PRIOR);
+    }
+
+    /**
      * This method removes transitions with frequencies below a given threshold. Its main expected use is to remove
      * a "prior" that was previously added. Assuming the prior was less than 1, {@code removeWeakLinks(1D)} will
      * remove all transitions created by {@code addPriors()}.
@@ -180,6 +188,13 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         model.forEach( (k,v) -> {
             v.entrySet().removeIf( transition -> transition.getValue() < threshold);
         });
+    }
+
+    /**
+     * A shortcut to {@code removeWeakLinks(1D)}, this method usually serves to remove "priors" only.
+     */
+    public void removeWeakLinks() {
+        removeWeakLinks(1D);
     }
 
 }

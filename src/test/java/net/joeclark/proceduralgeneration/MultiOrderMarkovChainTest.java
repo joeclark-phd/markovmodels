@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+import static net.joeclark.proceduralgeneration.MultiOrderMarkovChain.DEFAULT_PRIOR;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("MultiOrderMarkovChain...")
@@ -167,6 +168,15 @@ class MultiOrderMarkovChainTest {
             assertTrue(chain.model.get(Arrays.asList("one")).containsKey("small"),"removeWeakLinks removed a link it shouldn't have removed");
             chain.addPriors(0.001D);
             assertEquals(0.001D,chain.model.get(Arrays.asList("one")).get("step"),"addPriors after removeWeakLinks did not successfully change the prior");
+        }
+
+        @Test
+        @DisplayName("priors can be set and removed with shortcut functions")
+        void PriorsCanBeSetAndRemovedWithShortcuts() {
+            chain.addPriors();
+            assertEquals(DEFAULT_PRIOR,chain.model.get(Arrays.asList("one")).get("step"),"prior was not set to DEFAULT_PRIOR by the shortcut addPriors()");
+            chain.removeWeakLinks();
+            assertFalse(chain.model.get(Arrays.asList("one")).containsKey("step"),"shortcut removeWeakLinks() failed to remove a prior");
         }
 
     }
