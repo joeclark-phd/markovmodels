@@ -17,11 +17,12 @@ import static java.lang.Integer.min;
  * The reference implementation for net.joeclark.proceduralgeneration.MarkovChain.
  */
 public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
+    private static final Logger logger = LoggerFactory.getLogger( MultiOrderMarkovChain.class );
+
     /** {@value}*/
     public static final int DEFAULT_ORDER = 3;
     /** {@value}*/
     public static final double DEFAULT_PRIOR = 0.005D;
-    private static final Logger logger = LoggerFactory.getLogger( MultiOrderMarkovChain.class );
 
     // TODO: edit README
     // TODO: add routine to train on a stream
@@ -165,6 +166,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
      * @param prior the weight to be given to each new link
      */
     public void addPriors(Double prior) {
+        logger.debug("Adding unobserved state transitions with 'prior' weight {}",prior);
         model.forEach( (k,v) -> {
             knownStates.forEach( state -> v.putIfAbsent(state, prior) );
         });
@@ -185,6 +187,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
      * @param threshold the minimum weight/frequency of a transition to keep in the model
      */
     public void removeWeakLinks(Double threshold) {
+        logger.debug("Removing all links with weight less than {}",threshold);
         model.forEach( (k,v) -> {
             v.entrySet().removeIf( transition -> transition.getValue() < threshold);
         });
