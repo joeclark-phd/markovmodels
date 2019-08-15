@@ -152,4 +152,34 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         model.computeIfAbsent(fromState, k -> new HashMap<>()).compute(toState, (k,v) -> (v==null) ? 1D : v+1D);
     }
 
+    /**
+     * Adds a transition from every known model to every known state for which a link was not previously observed,
+     * with the specified weight.  Since each real observation adds a weight of 1.0D, assigning a fraction here gives
+     * each of these links a chance to occur that is less than a really-observed link.  Values of 0.001 to 0.01
+     * have worked well for the author's procedural generation applications.
+     *
+     * <p>Note that calling this method twice has no effect unless new states have become known.  To change the
+     * priors, first call {@code removeWeakLinks()} to cull the ones previously set.</p>
+     *
+     * @param prior the weight to be given to each new link
+     */
+    public void addPriors(Double prior) {
+        model.forEach( (k,v) -> {
+            knownStates.forEach( state -> v.putIfAbsent(state, prior) );
+        });
+        System.out.println(model);
+    }
+
+    /**
+     * This method removes transitions with frequencies below a given threshold. Its main expected use is to remove
+     * a "prior" that was previously added. Assuming the prior was less than 1, {@code removeWeakLinks(1D)} will
+     * remove all transitions created by {@code addPriors()}.
+     * @param threshold the minimum weight/frequency of a transition to keep in the model
+     */
+    public void removeWeakLinks(Double threshold) {
+        model.forEach( (k,v) -> {
+            v.entrySet().removeIf( transition -> transition.getValue() < threshold);
+        });
+    }
+
 }

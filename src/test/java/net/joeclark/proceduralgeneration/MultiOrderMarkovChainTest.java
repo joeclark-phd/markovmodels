@@ -116,7 +116,7 @@ class MultiOrderMarkovChainTest {
         }
 
         @Test
-        @DisplayName("weightedRandomNext choice should be one of the trained links")
+        @DisplayName("weightedRandomNext choice should be one of the trained links (assuming priors haven't been added)")
         void WeightedRandomNextShouldBeOneOfTheTrainedLinks() {
             String next = chain.weightedRandomNext(Arrays.asList("one"));
             assertTrue(next.equals("small") || next.equals("giant"));
@@ -144,6 +144,29 @@ class MultiOrderMarkovChainTest {
         @DisplayName("allPossibleNext should return empty set if state has no 'to' links")
         void AllPossibleNextShouldReturnEmptyIfStateHasNoToLinks() {
             assertTrue(chain.allPossibleNext(Arrays.asList("mankind")).isEmpty());
+        }
+
+        @Test
+        @DisplayName("priors can be added for links that were not observed")
+        void PriorsCanBeAdded() {
+            chain.addPriors(0.005D);
+            assertEquals(1.0D,chain.model.get(Arrays.asList("one")).get("small"),"adding priors should not affect already-observed links");
+            assertEquals(0.005D,chain.model.get(Arrays.asList("one")).get("step"),"priors should be added for unobserved links from non-terminal states");
+            assertFalse(chain.model.containsKey(Arrays.asList("mankind")),"adding priors should not create new models for terminal states");
+        }
+
+        @Test
+        @DisplayName("priors can be changed by calling removeWeakLinks and then addPriors")
+        void PriorsCanBeChanged() {
+            chain.addPriors(0.005D);
+            assertEquals(1.0D,chain.model.get(Arrays.asList("one")).get("small"),"adding priors should not affect already-observed links");
+            assertEquals(0.005D,chain.model.get(Arrays.asList("one")).get("step"),"priors should be added for unobserved links from non-terminal states");
+            assertFalse(chain.model.containsKey(Arrays.asList("mankind")),"adding priors should not create new models for terminal states");
+            chain.removeWeakLinks(1D);
+            assertFalse(chain.model.get(Arrays.asList("one")).containsKey("step"),"removeWeakLinks failed to remove a prior");
+            assertTrue(chain.model.get(Arrays.asList("one")).containsKey("small"),"removeWeakLinks removed a link it shouldn't have removed");
+            chain.addPriors(0.001D);
+            assertEquals(0.001D,chain.model.get(Arrays.asList("one")).get("step"),"addPriors after removeWeakLinks did not successfully change the prior");
         }
 
     }
