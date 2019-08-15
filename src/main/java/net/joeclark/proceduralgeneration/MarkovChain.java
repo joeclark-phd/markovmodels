@@ -58,4 +58,6 @@ public interface MarkovChain<T> {
      * @return A state chosen by weighted random draw.
      */
     public T weightedRandomNext(List<T> currentSequence);
+
+    // TODO: define method signatures to examine transition models and to arbitrarily set a transition weight
 }

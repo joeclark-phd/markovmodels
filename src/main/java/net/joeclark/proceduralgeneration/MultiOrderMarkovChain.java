@@ -45,8 +45,8 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
 
     // TODO: edit README
     // TODO: make serializable and test serialization
-    // TODO: complete javadocs
     // TODO: build project to qualitatively test output
+    // TODO: prep for maven central
     // for each observed state or sequence of states (of length at most maxOrder), store a set of possible following
     // states mapped to weights (equal to the number of times the sequence was observed, not computed probabilities,
     // as that computation would be unnecessary overhead)
