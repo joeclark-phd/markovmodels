@@ -18,19 +18,16 @@ import static java.lang.Integer.min;
  * The reference implementation for net.joeclark.proceduralgeneration.MarkovChain.
  */
 public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
-    private static final Logger logger = LoggerFactory.getLogger( MultiOrderMarkovChain.class );
-
     /** {@value}*/
     public static final int DEFAULT_ORDER = 3;
     /** {@value}*/
     public static final double DEFAULT_PRIOR = 0.005D;
+    private static final Logger logger = LoggerFactory.getLogger( MultiOrderMarkovChain.class );
 
     // TODO: edit README
-    // TODO: add routine to train on a stream
     // TODO: make serializable and test serialization
     // TODO: complete javadocs
     // TODO: build project to qualitatively test output
-
     // for each observed state or sequence of states (of length at most maxOrder), store a set of possible following
     // states mapped to weights (equal to the number of times the sequence was observed, not computed probabilities,
     // as that computation would be unnecessary overhead)
@@ -54,7 +51,9 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         logger.debug("maxOrder set to {} for future model training",maxOrder);
     }
 
-    // TODO: getters for knownStates.size() and numTrainedSequences
+    public int getNumTrainedSequences() { return numTrainedSequences; }
+
+    public int getNumKnownState() { return knownStates.size(); }
 
     public MultiOrderMarkovChain<T> withRandom(Random random) {
         this.setRandom(random);
@@ -86,9 +85,10 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
     public Set<T> allPossibleNext(List<T> currentSequence) {
         try {
             Map<T, Double> bestModel = bestModel(currentSequence);
+            if( bestModel==null ) { throw new NullPointerException(); }
             return bestModel.keySet();
         } catch(IllegalStateException e) {
-            logger.trace(e.getMessage() + ": returning empty set");
+            logger.trace("{}: returning empty set",e.getMessage());
             return new HashSet<>();
         }
     }
@@ -96,13 +96,14 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
     @Override
     public T weightedRandomNext(List<T> currentSequence) {
         Map<T,Double> bestModel = bestModel(currentSequence);
-        double sumOfWeights = bestModel.values().stream().reduce(0.0D, (a,b)->a+b);
+        if( bestModel==null ) { throw new NullPointerException(); }
+        double sumOfWeights = bestModel.values().stream().reduce(0.0D, Double::sum);
         double randomRoll = sumOfWeights * random.nextDouble();
-        for(T t: bestModel.keySet()) {
-            if(randomRoll>bestModel.get(t)) {
-                randomRoll -= bestModel.get(t);
+        for(Map.Entry<T,Double> link: bestModel.entrySet()) {
+            if(randomRoll > link.getValue()) {
+                randomRoll -= link.getValue();
             } else {
-                return t;
+                return link.getKey();
             }
         }
         logger.warn("something went wrong in weighted random draw and NULL was returned instead of a known state");
@@ -112,11 +113,12 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
     @Override
     public T unweightedRandomNext(List<T> currentSequence) {
         Map<T,Double> bestModel = bestModel(currentSequence);
+        if( bestModel==null ) { throw new NullPointerException(); }
         List<T> possibles = new ArrayList<>(bestModel.keySet());
         return possibles.get(random.nextInt(possibles.size()));
     }
 
-    public Map<T,Double> bestModel(List<T> currentSequence) {
+    private Map<T,Double> bestModel(List<T> currentSequence) {
         if(!knownStates.containsAll(currentSequence)) {
             throw new IllegalArgumentException("at least one of the states in the sequence is unknown to the model");
         } else {
@@ -167,7 +169,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         numTrainedSequences += 1;
     }
 
-    protected void implementLink(List<T> fromState, T toState) {
+    private void implementLink(List<T> fromState, T toState) {
         logger.trace("implementing link: {} -> {}",fromState, toState);
         model.computeIfAbsent(fromState, k -> new HashMap<>()).compute(toState, (k,v) -> (v==null) ? 1D : v+1D);
     }
@@ -185,10 +187,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
      */
     public void addPriors(Double prior) {
         logger.debug("Adding unobserved state transitions with 'prior' weight {}",prior);
-        model.forEach( (k,v) -> {
-            knownStates.forEach( state -> v.putIfAbsent(state, prior) );
-        });
-        System.out.println(model);
+        model.forEach( (k,v) -> knownStates.forEach(state -> v.putIfAbsent(state, prior) ));
     }
 
     /**
@@ -206,9 +205,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
      */
     public void removeWeakLinks(Double threshold) {
         logger.debug("Removing all links with weight less than {}",threshold);
-        model.forEach( (k,v) -> {
-            v.entrySet().removeIf( transition -> transition.getValue() < threshold);
-        });
+        model.forEach( (k,v) -> v.entrySet().removeIf(transition -> transition.getValue() < threshold));
     }
 
     /**
