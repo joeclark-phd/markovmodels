@@ -6,8 +6,12 @@
 
     <groupId>net.joeclark.proceduralgeneration</groupId>
     <artifactId>markovmodels</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
+
+    <name>markovmodels</name>
+    <description>Markov chains for procedural generation applications</description>
+    <url>https://github.com/joeclark-phd/markovmodels</url>
 
     <licenses>
         <license>
@@ -24,6 +28,12 @@
             <organizationUrl>https://github.com/joeclark-phd</organizationUrl>
         </developer>
     </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/joeclark-phd/markovmodels.git</connection>
+        <developerConnection>scm:git:ssh://github.com:joeclark-phd/markovmodels.git</developerConnection>
+        <url>https://github.com/joeclark-phd/markovmodels</url>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -57,15 +67,36 @@
             <version>2.7</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.2</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -111,6 +142,7 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 

@@ -124,8 +124,8 @@ class MultiOrderMarkovChainTest {
         @BeforeEach
         void trainChain() {
             chain = new MultiOrderMarkovChain<>();
-            chain.addSequence(new ArrayList<>(Arrays.asList("one","small","step","for","man")));
-            chain.addSequence(new LinkedList<>(Arrays.asList("one","giant","leap","for","mankind")));
+            chain.addSequence( Arrays.asList("one","small","step","for","man") );
+            chain.addSequence( Arrays.asList("one","giant","leap","for","mankind") );
         }
 
         @Test
