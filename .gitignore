@@ -4,3 +4,6 @@
 *.iws
 
 target/
+
+# serialized files created by unit tests
+*.ser

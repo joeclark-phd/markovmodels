@@ -3,11 +3,13 @@ package net.joeclark.proceduralgeneration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -34,17 +36,31 @@ import static java.lang.Integer.min;
  * If multi-order models are not desired, set {@code maxOrder} to 1.  If priors are not desired, do nothing; they will
  * not be added by default.
  *
- * @param <T> the type of a "state"
+ * @param <T> the type of a "state". Must be serializable so the model can be serializable.
  */
-public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
+public class MultiOrderMarkovChain<T extends Serializable> implements MarkovChain<T>, Serializable {
+    private static final Logger logger = LoggerFactory.getLogger( MultiOrderMarkovChain.class );
+    private static final long serialVersionUID = 1L;
+
     /** {@value}*/
     public static final int DEFAULT_ORDER = 3;
     /** {@value}*/
     public static final double DEFAULT_PRIOR = 0.005D;
-    private static final Logger logger = LoggerFactory.getLogger( MultiOrderMarkovChain.class );
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MultiOrderMarkovChain<?> that = (MultiOrderMarkovChain<?>) o;
+        return maxOrder == that.maxOrder && numTrainedSequences == that.numTrainedSequences && Objects.equals(model, that.model) && Objects.equals(knownStates, that.knownStates);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(model, knownStates, maxOrder, numTrainedSequences);
+    }
 
     // TODO: edit README
-    // TODO: make serializable and test serialization
     // TODO: build project to qualitatively test output
     // TODO: prep for maven central
     // for each observed state or sequence of states (of length at most maxOrder), store a set of possible following
@@ -184,7 +200,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
 
     /**
      * Given a {@code List<T>}, adds all transitions in the sequence (including transitions from sequences of lengths
-     * up to {@code maxOrder}) to the model, adding 1 to their weights.  All states in the sequence are added to
+     * up to {@code maxOrder}) to the model, adding 1.0 to their weights.  All states in the sequence are added to
      * the set of "known states" which serves as the alphabet or vocabulary of possible sequences. If the input list
      * contains only two states, only a single transition is added to the model.
      * @param sequence a List of 2 or more "states"
@@ -201,7 +217,7 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
             for(int j=sequence.size();j>1;j--) {
                 for (int i = 0; ((i < maxOrder) && (i + 1 < j)); i++) {
                     ArrayList<T> multiplePredecessors = new ArrayList<>(sequence.subList(j - 2 - i, j - 1));
-                    implementLink(multiplePredecessors, sequence.get(j - 1));
+                    incrementLink(multiplePredecessors, sequence.get(j - 1), 1D);
                 }
             }
         }
@@ -209,10 +225,28 @@ public class MultiOrderMarkovChain<T> implements MarkovChain<T> {
         numTrainedSequences += 1;
     }
 
-    // TODO: allow adding any arbitrary weight to the link, and create a public interface for clients who want to directly specify their models
-    private void implementLink(List<T> fromState, T toState) {
-        logger.trace("implementing link: {} -> {}",fromState, toState);
-        model.computeIfAbsent(fromState, k -> new HashMap<>()).compute(toState, (k,v) -> (v==null) ? 1D : v+1D);
+    private void incrementLink(List<T> fromState, T toState, double incrementalWeight) {
+        logger.trace("incrementing link {} -> {} by {}",fromState, toState, incrementalWeight);
+        model.computeIfAbsent(fromState, k -> new HashMap<>()).compute(toState, (k,v) -> (v==null) ? incrementalWeight : v+incrementalWeight);
+    }
+
+    /**
+     * Directly specify a transition or link from a sequence of states (which could be a List containing a single state)
+     * to another state, with an arbitrary weight.  This allows you to specify your model precisely, as an alternative to
+     * using the partially-automated {@code train} or {@code addSequence} methods.
+     * @param fromState a sequence of states preceding the transition. for a simple Markov chain this could be a single
+     *                  state wrapped in a java List
+     * @param toState a state that may follow the sequence given by 'fromState'
+     * @param weight the weight or (relative) probability of this transition. Weights are relative to other transitions
+     *               from the same 'fromState', so they are not constrained by any need to add up to 1.
+     */
+    public void specifyLink(List<T> fromState, T toState, double weight) {
+        logger.trace("specifying link {} -> {} with weight {}", fromState, toState, weight);
+        knownStates.addAll(fromState);
+        knownStates.add(toState);
+        HashMap<T,Double> link = new HashMap<>();
+        link.put(toState,weight);
+        model.put(fromState,link);
     }
 
     /**

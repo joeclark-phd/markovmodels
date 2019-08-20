@@ -5,6 +5,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -22,6 +28,17 @@ class MultiOrderMarkovChainTest {
         MultiOrderMarkovChain<Character> chain = new MultiOrderMarkovChain<>();
         chain.addSequence(new ArrayList<>(Arrays.asList('V','W','X','Y','Z')));
         chain.addSequence(new ArrayList<>(Arrays.asList('X','Y','Z')));
+    }
+
+    @Test
+    @DisplayName("Can define a model by direct specification rather than training")
+    void CanDefineAModelByDirectSpecification() {
+        MultiOrderMarkovChain<Character> chain = new MultiOrderMarkovChain<>();
+        chain.specifyLink(Arrays.asList('A'),'B',1.5D);
+        chain.specifyLink(Arrays.asList('A'),'B',1.25D);
+        chain.specifyLink(Arrays.asList('B'),'C',1.75D);
+        assertEquals(1.75D,chain.model.get(Arrays.asList('B')).get('C'),"specifyLink did not correctly specify a link");
+        assertEquals(1.25D,chain.model.get(Arrays.asList('A')).get('B'),"specifyLink failed to correctly overwrite a prior specification");
     }
 
     @Test
@@ -75,11 +92,11 @@ class MultiOrderMarkovChainTest {
     @DisplayName("When initialized but not trained...")
     class WhenUnTrained {
 
-        private MultiOrderMarkovChain<Object> chain;
+        private MultiOrderMarkovChain<Float> chain;
 
         @BeforeEach
         void InitializeButDontTrain() {
-            chain = new MultiOrderMarkovChain<Object>();
+            chain = new MultiOrderMarkovChain<Float>();
         }
 
         @Test
@@ -202,6 +219,35 @@ class MultiOrderMarkovChainTest {
             assertEquals(DEFAULT_PRIOR,chain.model.get(Arrays.asList("one")).get("step"),"prior was not set to DEFAULT_PRIOR by the shortcut addPriors()");
             chain.removeWeakLinks();
             assertFalse(chain.model.get(Arrays.asList("one")).containsKey("step"),"shortcut removeWeakLinks() failed to remove a prior");
+        }
+
+        @Test
+        @DisplayName("Can be serialized and deserialized")
+        void CanBeSerializedAndDeserialized() throws IOException, ClassNotFoundException {
+            chain.setMaxOrder(2);
+
+            FileOutputStream fileOutputStream = new FileOutputStream("target/mychain.ser");
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(chain);
+            objectOutputStream.flush();
+            objectOutputStream.close();
+
+            FileInputStream fileInputStream = new FileInputStream("target/mychain.ser");
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            @SuppressWarnings("unchecked")
+            MultiOrderMarkovChain<String> loadedChain = (MultiOrderMarkovChain<String>) objectInputStream.readObject();
+            objectInputStream.close();
+
+            System.out.println(chain.model);
+            System.out.println(loadedChain.model);
+
+            assertEquals(chain.getMaxOrder(),loadedChain.getMaxOrder(),"an int field was not preserved through serialization-deserialization");
+            assertEquals(chain.model,loadedChain.model,"the markov model was not preserved through serialization-deserialization");
+            assertEquals(chain.numTrainedSequences,loadedChain.numTrainedSequences,"numTrainedSequences was not preserved through serialization-deserialization");
+            assertEquals(chain.knownStates,loadedChain.knownStates,"knownStates was not preserved through serialization-deserialization");
+            assertEquals(chain.random.nextInt(),loadedChain.random.nextInt(),"random was not preserved through serialization-deserialization");
+
+            assertEquals(chain,loadedChain,"the serialized-deserialzed chain is not .equals() to the original chain");
         }
 
     }

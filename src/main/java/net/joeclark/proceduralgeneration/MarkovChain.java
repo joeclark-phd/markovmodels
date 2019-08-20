@@ -1,5 +1,6 @@
 package net.joeclark.proceduralgeneration;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -12,7 +13,7 @@ import java.util.Set;
  * distribution or observed frequencies, so not all transitions from any given state will be equally likely.
  * @param <T> the type of a "state"
  */
-public interface MarkovChain<T> {
+public interface MarkovChain<T extends Serializable> {
     /**
      * Tests whether the model has been initialized, populated, or trained with data.
      * @return "true" if at least one state transition is known to the model
