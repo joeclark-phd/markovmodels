@@ -1,6 +1,9 @@
 # markovmodels
 
 [![MIT License](https://img.shields.io/github/license/joeclark-phd/markovmodels.svg)](https://github.com/joeclark-phd/markovmodels/blob/master/LICENSE.md)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/00371bbadfa8403191a07ef728a14867)](https://www.codacy.com/app/joeclark-phd/markovmodels?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=joeclark-phd/markovmodels&amp;utm_campaign=Badge_Grade)
+[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/joeclark-phd/markovmodels.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/joeclark-phd/markovmodels/context:java)
+
 
 API reference: [https://joeclark-phd.github.io/markovmodels/](https://joeclark-phd.github.io/markovmodels/)
 
