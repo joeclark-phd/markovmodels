@@ -1,6 +1,6 @@
 # markovmodels
 
-[![MIT License](https://img.shields.io/github/license/joeclark-phd/random-text-generators.svg)](https://github.com/joeclark-phd/random-text-generators/blob/master/LICENSE.md)
+[![MIT License](https://img.shields.io/github/license/joeclark-phd/markovmodels.svg)](https://github.com/joeclark-phd/markovmodels/blob/master/LICENSE.md)
 
 API reference: [https://joeclark-phd.github.io/markovmodels/](https://joeclark-phd.github.io/markovmodels/)
 
