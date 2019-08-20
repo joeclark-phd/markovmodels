@@ -59,7 +59,7 @@ But we implemented it this way to make it possible to go beyond the simple Marko
 
     {'V'} -> 'A' with probability 0.15
     {'A','V'} -> 'A' with probability 0.33
-    {'J','A','V'} -> 'V' with probability 0.99
+    {'J','A','V'} -> 'A' with probability 0.99
 
 So just be aware than when calling the key functions, you are probably passing in a `List<T>` rather than simply a `T`.
 
