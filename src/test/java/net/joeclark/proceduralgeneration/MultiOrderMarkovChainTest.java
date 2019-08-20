@@ -11,10 +11,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import static net.joeclark.proceduralgeneration.MultiOrderMarkovChain.DEFAULT_PRIOR;
 import static org.junit.jupiter.api.Assertions.*;
@@ -252,6 +254,62 @@ class MultiOrderMarkovChainTest {
 
     }
 
+
+    @Nested
+    @DisplayName("With a complex object type")
+    class WithAComplexObjectType {
+
+        class WeatherPattern implements Serializable {
+            public String condition;
+            public Integer temperature;
+            public Character windDirection;
+
+            public String getCondition() { return condition; }
+            public Integer getTemperature() { return temperature; }
+            public Character getWindDirection() { return windDirection; }
+
+            public WeatherPattern(String condition, Integer temperature, Character windDirection) {
+                this.condition = condition;
+                this.temperature = temperature;
+                this.windDirection = windDirection;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                WeatherPattern that = (WeatherPattern) o;
+                return Objects.equals(condition, that.condition) && Objects.equals(temperature, that.temperature) && Objects.equals(windDirection, that.windDirection);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(condition, temperature, windDirection);
+            }
+
+            @Override
+            public String toString() {
+                return "{" + condition + "}";
+            }
+        }
+
+        @Test
+        @DisplayName("MultiOrderMarkovChain should behave the same as with primitive types")
+        void ShouldBehaveTheSame() {
+            MultiOrderMarkovChain<WeatherPattern> weatherchain = new MultiOrderMarkovChain<>();
+            WeatherPattern sunny = new WeatherPattern("sunny",75,'W');
+            WeatherPattern cloudy = new WeatherPattern("cloudy",55,'N');
+            WeatherPattern partlycloudy = new WeatherPattern("partly cloudy",65,'S');
+            WeatherPattern stormy = new WeatherPattern("stormy",50,'E');
+            weatherchain.addSequence(Arrays.asList(sunny,partlycloudy,cloudy,stormy,partlycloudy,sunny));
+            System.out.println(weatherchain.model);
+
+            WeatherPattern next = weatherchain.weightedRandomNext(Arrays.asList(partlycloudy));
+            assertTrue( next.equals(cloudy) || next.equals(sunny) );
+            assertTrue( weatherchain.weightedRandomNext(Arrays.asList(sunny,partlycloudy)).equals(cloudy) );
+        }
+
+    }
 
 
 }
