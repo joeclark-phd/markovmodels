@@ -60,9 +60,7 @@ public class MultiOrderMarkovChain<T extends Serializable> implements MarkovChai
         return Objects.hash(model, knownStates, maxOrder, numTrainedSequences);
     }
 
-    // TODO: edit README
     // TODO: build project to qualitatively test output
-    // TODO: prep for maven central
     // for each observed state or sequence of states (of length at most maxOrder), store a set of possible following
     // states mapped to weights (equal to the number of times the sequence was observed, not computed probabilities,
     // as that computation would be unnecessary overhead)

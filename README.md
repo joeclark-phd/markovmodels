@@ -1,5 +1,7 @@
 # markovmodels
 
+[![MIT License](https://img.shields.io/github/license/joeclark-phd/random-text-generators.svg)](https://github.com/joeclark-phd/random-text-generators/blob/master/LICENSE.md)
+
 API reference: [https://joeclark-phd.github.io/markovmodels/](https://joeclark-phd.github.io/markovmodels/)
 
 I found myself writing code for multi-order Markov chains in [joeclark-phd/random-text-generators](https://github.com/joeclark-phd/random-text-generators) and realized that I and others might need a generic version of that concept in a few different kinds of procedural generation tasks.  This project is a generic and reusable tool for training and using Markov chains, optionally with multiple "orders" and prior probabilities.
