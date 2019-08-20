@@ -60,5 +60,4 @@ public interface MarkovChain<T extends Serializable> {
      */
     public T weightedRandomNext(List<T> currentSequence);
 
-    // TODO: define method signatures to examine transition models and to arbitrarily set a transition weight
 }

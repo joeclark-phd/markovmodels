@@ -90,6 +90,14 @@ public class MultiOrderMarkovChain<T extends Serializable> implements MarkovChai
 
     public int getNumKnownState() { return knownStates.size(); }
 
+    /**
+     * Reveals the model stored in the instance, in its raw form.
+     * @return A map of sequences to a map of states to weights; for each sequence, the inner map contains weights
+     * (relative probabilities) for each possible transition from the end of that sequence.
+     */
+    public Map<List<T>, Map<T,Double>> getModel() { return model; }
+
+
     public MultiOrderMarkovChain<T> withRandom(Random random) {
         this.setRandom(random);
         return this;

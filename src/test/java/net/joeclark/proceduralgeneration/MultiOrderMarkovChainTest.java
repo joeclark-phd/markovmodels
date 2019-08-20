@@ -302,7 +302,7 @@ class MultiOrderMarkovChainTest {
             WeatherPattern partlycloudy = new WeatherPattern("partly cloudy",65,'S');
             WeatherPattern stormy = new WeatherPattern("stormy",50,'E');
             weatherchain.addSequence(Arrays.asList(sunny,partlycloudy,cloudy,stormy,partlycloudy,sunny));
-            System.out.println(weatherchain.model);
+            System.out.println(weatherchain.getModel());
 
             WeatherPattern next = weatherchain.weightedRandomNext(Arrays.asList(partlycloudy));
             assertTrue( next.equals(cloudy) || next.equals(sunny) );
