@@ -1,5 +1,6 @@
 # markovmodels
 
+[![Maven Central](https://img.shields.io/maven-central/v/net.joeclark.proceduralgeneration/markovmodels.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22net.joeclark.proceduralgeneration%22%20AND%20a:%22markovmodels%22)
 [![MIT License](https://img.shields.io/github/license/joeclark-phd/markovmodels.svg)](https://github.com/joeclark-phd/markovmodels/blob/master/LICENSE.md)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/00371bbadfa8403191a07ef728a14867)](https://www.codacy.com/app/joeclark-phd/markovmodels?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=joeclark-phd/markovmodels&amp;utm_campaign=Badge_Grade)
 [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/joeclark-phd/markovmodels.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/joeclark-phd/markovmodels/context:java)
@@ -25,10 +26,13 @@ If multi-order models are not desired, set `maxOrder` to 1.  If priors are not d
 
 ## Maven metadata
 
-    <groupId>net.joeclark.proceduralgeneration</groupId>
-    <artifactId>markovmodels</artifactId>
-    <version>1.0</version>
+Add this to your `POM.xml`:
 
+    <dependency>
+      <groupId>net.joeclark.proceduralgeneration</groupId>
+      <artifactId>markovmodels</artifactId>
+      <version>1.0</version>
+    </dependency>
 
 ## Usage
 
